@@ -30,11 +30,11 @@ jobs:
           node-version-file: ".nvmrc"
       - run: gh config set prompt disabled
       - if: github.event.inputs.version-type == 'Major'
-        run: yarn version --major --no-git-tag-version
+        run: yarn version --minor
       - if: github.event.inputs.version-type == 'Minor'
-        run: yarn version --minor --no-git-tag-version
+        run: yarn version --minor
       - if: github.event.inputs.version-type == 'Patch'
-        run: yarn version --patch --no-git-tag-version
+        run: yarn version --patch
       - name: Extract version
         id: package-version
         uses: martinbeentjes/npm-get-version-action@v1.3.1

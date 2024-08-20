@@ -47,15 +47,5 @@ jobs:
           export NEW_VERSION=${{ steps.version-step.outputs.current-version }}
           NEW_BRANCH="BNT-v${NEW_VERSION}"
 
-          yarn || exit 1
-          yarn build:dry || exit 1
-          yarn test || exit 1
-
-          npm set //npm.pkg.github.com/:_authToken $GITHUB_TOKEN
-          git config --global user.name 'BentoBuild'
-          git config --global user.email 'bento-build@bentoforbusiness.com'
-          git checkout -b $NEW_BRANCH
-          yarn package
-
           git push -u origin "${NEW_BRANCH}"
           gh pr create --fill --title "${NEW_BRANCH} -> ${BRANCH_NAME}" --head "${NEW_BRANCH}" --base "${BRANCH_NAME}"

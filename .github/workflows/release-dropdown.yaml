@@ -43,9 +43,9 @@ jobs:
           version-file: "./package.json"
           schema: major.minor.patch
       - run: |
-          gh co -- package.json
+          git checkout -- package.json
           export NEW_VERSION=${{ steps.version-step.outputs.current-version }}
           NEW_BRANCH="BNT-v${NEW_VERSION}"
 
-          gh push -u origin "${NEW_BRANCH}"
+          git push -u origin "${NEW_BRANCH}"
           gh pr create --fill --title "${NEW_BRANCH} -> ${BRANCH_NAME}" --head "${NEW_BRANCH}" --base "${BRANCH_NAME}"

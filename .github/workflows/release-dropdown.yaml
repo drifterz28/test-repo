@@ -43,7 +43,7 @@ jobs:
           version-file: "./package.json"
           schema: major.minor.patch
       - run: |
-          gh checkout -- package.json
+          gh co -- package.json
           export NEW_VERSION=${{ steps.version-step.outputs.current-version }}
           NEW_BRANCH="BNT-v${NEW_VERSION}"
 

@@ -1,0 +1,61 @@
+name: release-dropdown
+on:
+  workflow_dispatch:
+    inputs:
+      version-type:
+        type: choice
+        description: "Update version"
+        required: true
+        options:
+          - Major
+          - Minor
+          - Patch
+        default: "Patch"
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: ".nvmrc"
+      - run: gh config set prompt disabled
+      - if: github.event.inputs.version-type == 'Major'
+        run: yarn version --major --no-git-tag-version
+      - if: github.event.inputs.version-type == 'Minor'
+        run: yarn version --minor --no-git-tag-version
+      - if: github.event.inputs.version-type == 'Patch'
+        run: yarn version --patch --no-git-tag-version
+      - name: Extract version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+        with:
+          # specify here the path to your version file (e.g. package.json, pom.xml...)
+          version-file: "./package.json"
+          schema: major.minor.patch
+      - run: |
+          git checkout -- package.json
+          export NEW_VERSION=${{ steps.version-step.outputs.current-version }}
+          NEW_BRANCH="BNT-v${NEW_VERSION}"
+
+          yarn || exit 1
+          yarn build:dry || exit 1
+          yarn test || exit 1
+
+          npm set //npm.pkg.github.com/:_authToken $GITHUB_TOKEN
+          git config --global user.name 'BentoBuild'
+          git config --global user.email 'bento-build@bentoforbusiness.com'
+          git checkout -b $NEW_BRANCH
+          yarn package
+
+          git push -u origin "${NEW_BRANCH}"
+          gh pr create --fill --title "${NEW_BRANCH} -> ${BRANCH_NAME}" --head "${NEW_BRANCH}" --base "${BRANCH_NAME}"
